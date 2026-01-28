@@ -1,0 +1,1428 @@
+{
+  "name": "Autonomous AI Sales SDR (Closed-Loop Architecture)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "yeni-lead",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        16,
+        -128
+      ],
+      "id": "c11c88ce-daa2-4bca-88fc-485d3ea365e0",
+      "name": "Trigger: New Lead (Mock)",
+      "webhookId": "770474ea-797f-4adc-a8e9-ef0b2865f940"
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "role": "system",
+              "content": "=Sen uzman bir Satış Direktörüsün. Gelen müşteri mesajını BANT (Budget, Authority, Need, Timing) metoduna göre analiz et.\n\nGÖREVİN:\n1. Mesajda Bütçe (Budget) ve Zamanlama (Timing) bilgisi var mı kontrol et.\n2. Eğer bu bilgilerden biri eksikse, durumu \"incomplete\" olarak işaretle ve müşteriye nazikçe sorulacak bir soru hazırla.\n3. Eğer bilgi tamsa, durumu \"complete\" yap ve 0-100 arası puanla.\n\nÇIKTI FORMATI (JSON):\n{\n  \"status\": \"complete\" veya \"incomplete\",\n  \"missing_info\": \"budget\" veya \"timeline\" veya \"none\",\n  \"score\": 85 (Eğer incomplete ise 0 ver),\n  \"reasoning\": \"Puanlama veya eksik bilgi gerekçesi...\",\n  \"clarification_email\": \"Eksik bilgi varsa müşteriye atılacak mail taslağı (Yoksa null)\"\n}"
+            },
+            {
+              "content": "=Analiz Edilecek Lead: İsim:  {{ $json.body.name }} Şirket: {{ $json.body.company }} Mesaj:{{ $json.body.message }}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {
+          "textFormat": {
+            "textOptions": {
+              "type": "json_object"
+            }
+          }
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        240,
+        -128
+      ],
+      "id": "542871e4-87cc-4065-b09c-ffff79b4bef5",
+      "name": "AI Brain: Analyze & Score",
+      "credentials": {
+        "openAiApi": {
+          "id": "8G9HHRMyQLpATcg9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "ef3532bd-b841-4f41-a9e2-8cf95710ed87",
+              "leftValue": "={{ $json.output[0].content[0].text.score }}",
+              "rightValue": 69,
+              "operator": {
+                "type": "number",
+                "operation": "gt"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        832,
+        -144
+      ],
+      "id": "fa6954c1-d07e-4e71-9497-3b400b9349e2",
+      "name": "Filter: High Value Leads"
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appav5ThDtKtlEvD8",
+          "mode": "list",
+          "cachedResultName": "B2B Satış Lead Takip CRM",
+          "cachedResultUrl": "https://airtable.com/appav5ThDtKtlEvD8"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl9BVjdeKJFThcYY",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appav5ThDtKtlEvD8/tbl9BVjdeKJFThcYY"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Müşteri Adı": "={{ $('Trigger: New Lead (Mock)').item.json.body.name }}",
+            "Email": "={{ $('Trigger: New Lead (Mock)').item.json.body.email }}",
+            "Müşteri Mesajı": "={{ $('Trigger: New Lead (Mock)').item.json.body.message }}",
+            "AI Skoru": "={{ $json.output[0].content[0].text.score }}",
+            "AI Açıklaması": "={{ $json.output[0].content[0].text.reasoning }}",
+            "Durum": "Onaylı"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Müşteri Adı",
+              "displayName": "Müşteri Adı",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Müşteri Mesajı",
+              "displayName": "Müşteri Mesajı",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Skoru",
+              "displayName": "AI Skoru",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Açıklaması",
+              "displayName": "AI Açıklaması",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Durum",
+              "displayName": "Durum",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Yeni",
+                  "value": "Yeni"
+                },
+                {
+                  "name": "Onaylı",
+                  "value": "Onaylı"
+                },
+                {
+                  "name": "Red",
+                  "value": "Red"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email Domain",
+              "displayName": "Email Domain",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Müşteri Mesajı Uzunluğu",
+              "displayName": "Müşteri Mesajı Uzunluğu",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Onaylı mı?",
+              "displayName": "Onaylı mı?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "AI Lead Kategorisi",
+              "displayName": "AI Lead Kategorisi",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Sonraki Aksiyon Önerisi",
+              "displayName": "AI Sonraki Aksiyon Önerisi",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1072,
+        -128
+      ],
+      "id": "d2baa052-5fa8-428d-8d14-0b41ace12f6f",
+      "name": "Airtable: Create \"Pending\" Record",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ajay60jgP1cNazMj",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#sales",
+          "mode": "name"
+        },
+        "messageType": "block",
+        "blocksUi": "={\n\t\"blocks\": [\n\t\t{\n\t\t\t\"type\": \"section\",\n\t\t\t\"text\": {\n\t\t\t\t\"type\": \"mrkdwn\",\n\t\t\t\t\"text\": \"*🚀 YENİ LEAD ONAYI BEKLİYOR*\\n\\nYapay zeka yeni bir potansiyel müşteri yakaladı. CRM'e kaydedilsin mi?\"\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"type\": \"section\",\n\t\t\t\"fields\": [\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"mrkdwn\",\n\t\t\t\t\t\"text\": \"*Müşteri:*\\n{{ $json.body.name }}\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"mrkdwn\",\n\t\t\t\t\t\"text\": \"*Şirket:*\\n{{ $json.body.company }}\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"mrkdwn\",\n\t\t\t\t\t\"text\": \"*AI Skoru:*\\n{{ $json.output.content.text.score }}\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"mrkdwn\",\n\t\t\t\t\t\"text\": \"*Durum:*\\nBeklemede ⏳\"\n\t\t\t\t}\n\t\t\t]\n\t\t},\n\t\t{\n\t\t\t\"type\": \"section\",\n\t\t\t\"text\": {\n\t\t\t\t\"type\": \"mrkdwn\",\n\t\t\t\t\"text\": \"*AI Analizi:*\\n> {{ $json.output.content.text.reasoning }}\"\n\t\t\t}\n\t\t},\n\t\t{\n\t\t\t\"type\": \"actions\",\n\t\t\t\"elements\": [\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"button\",\n\t\t\t\t\t\"text\": {\n\t\t\t\t\t\t\"type\": \"plain_text\",\n\t\t\t\t\t\t\"text\": \"✅ ONAYLA (CRM'e Ekle)\",\n\t\t\t\t\t\t\"emoji\": true\n\t\t\t\t\t},\n\t\t\t\t\t\"style\": \"primary\",\n\t\t\t\t\t\"value\": \"approve|{{ $json.id }}\",\n\t\t\t\t\t\"action_id\": \"btn_approve\"\n\t\t\t\t},\n\t\t\t\t{\n\t\t\t\t\t\"type\": \"button\",\n\t\t\t\t\t\"text\": {\n\t\t\t\t\t\t\"type\": \"plain_text\",\n\t\t\t\t\t\t\"text\": \"❌ REDDET (Arşivle)\",\n\t\t\t\t\t\t\"emoji\": true\n\t\t\t\t\t},\n\t\t\t\t\t\"style\": \"danger\",\n\t\t\t\t\t\"value\": \"reject|{{ $json.id }}\",\n\t\t\t\t\t\"action_id\": \"btn_reject\"\n\t\t\t\t}\n\t\t\t]\n\t\t}\n\t]\n}",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1312,
+        -32
+      ],
+      "id": "ca0e282b-d497-4459-8278-d41747dc39fb",
+      "name": "Slack: Ask for Manager Approval",
+      "webhookId": "8b87dc1a-aef4-4490-96a8-f7925f50df1f",
+      "credentials": {
+        "slackApi": {
+          "id": "bd1KXGx2tyVXrMMl",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "create",
+        "base": {
+          "__rl": true,
+          "value": "appav5ThDtKtlEvD8",
+          "mode": "list",
+          "cachedResultName": "B2B Satış Lead Takip CRM",
+          "cachedResultUrl": "https://airtable.com/appav5ThDtKtlEvD8"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl9BVjdeKJFThcYY",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appav5ThDtKtlEvD8/tbl9BVjdeKJFThcYY"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Müşteri Adı": "={{ $('Trigger: New Lead (Mock)').item.json.body.name }}",
+            "Email": "={{ $('Trigger: New Lead (Mock)').item.json.body.email }}",
+            "Müşteri Mesajı": "={{ $('Trigger: New Lead (Mock)').item.json.body.message }}",
+            "AI Skoru": "={{ $json.output[0].content[0].text.score }}",
+            "AI Açıklaması": "={{ $json.output[0].content[0].text.reasoning }}",
+            "Durum": "Red"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "Müşteri Adı",
+              "displayName": "Müşteri Adı",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Müşteri Mesajı",
+              "displayName": "Müşteri Mesajı",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Skoru",
+              "displayName": "AI Skoru",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Açıklaması",
+              "displayName": "AI Açıklaması",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Durum",
+              "displayName": "Durum",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Yeni",
+                  "value": "Yeni"
+                },
+                {
+                  "name": "Onaylı",
+                  "value": "Onaylı"
+                },
+                {
+                  "name": "Red",
+                  "value": "Red"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email Domain",
+              "displayName": "Email Domain",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Müşteri Mesajı Uzunluğu",
+              "displayName": "Müşteri Mesajı Uzunluğu",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Onaylı mı?",
+              "displayName": "Onaylı mı?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "AI Lead Kategorisi",
+              "displayName": "AI Lead Kategorisi",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Sonraki Aksiyon Önerisi",
+              "displayName": "AI Sonraki Aksiyon Önerisi",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        1088,
+        48
+      ],
+      "id": "dd18eb25-7fc3-48a3-abd0-66b75784ada3",
+      "name": "Airtable: Archive Junk Leads",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ajay60jgP1cNazMj",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "slack-onay",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        256,
+        272
+      ],
+      "id": "21fe3e91-6722-4803-a82b-9f7b1dbc27ac",
+      "name": "Listener: Slack Button Click",
+      "webhookId": "f24bbed7-9311-4e7e-9d12-a2198484cd74"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "79a1fb1c-2b91-4269-8710-efe20c7ab383",
+              "name": "Action",
+              "value": "={{ JSON.parse($json.body.payload).actions[0].value.split('|')[0] }}",
+              "type": "string"
+            },
+            {
+              "id": "2f091ce6-9918-47af-b0ac-b413941827c8",
+              "name": "RecordID",
+              "value": "={{ JSON.parse($json.body.payload).actions[0].value.split('|')[1] }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        464,
+        272
+      ],
+      "id": "043c9e35-0de6-4941-a851-37f002b4c37c",
+      "name": "Parser: Extract Decision & ID"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "2247a266-811f-42f4-b562-30625c1cd321",
+              "leftValue": "={{ $json.Action }}",
+              "rightValue": "approve",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        272
+      ],
+      "id": "0278314d-3eee-45eb-bf8c-3336b6f471d9",
+      "name": "Router: Approved?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appav5ThDtKtlEvD8",
+          "mode": "list",
+          "cachedResultName": "B2B Satış Lead Takip CRM",
+          "cachedResultUrl": "https://airtable.com/appav5ThDtKtlEvD8"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl9BVjdeKJFThcYY",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appav5ThDtKtlEvD8/tbl9BVjdeKJFThcYY"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "AI Skoru": 0,
+            "id": "={{ $json.RecordID }}",
+            "Durum": "Onaylı"
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Müşteri Adı",
+              "displayName": "Müşteri Adı",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Müşteri Mesajı",
+              "displayName": "Müşteri Mesajı",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Skoru",
+              "displayName": "AI Skoru",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Açıklaması",
+              "displayName": "AI Açıklaması",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Durum",
+              "displayName": "Durum",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Yeni",
+                  "value": "Yeni"
+                },
+                {
+                  "name": "Onaylı",
+                  "value": "Onaylı"
+                },
+                {
+                  "name": "Red",
+                  "value": "Red"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email Domain",
+              "displayName": "Email Domain",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Müşteri Mesajı Uzunluğu",
+              "displayName": "Müşteri Mesajı Uzunluğu",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Onaylı mı?",
+              "displayName": "Onaylı mı?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "AI Lead Kategorisi",
+              "displayName": "AI Lead Kategorisi",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Sonraki Aksiyon Önerisi",
+              "displayName": "AI Sonraki Aksiyon Önerisi",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        928,
+        224
+      ],
+      "id": "415db8bf-46d0-4266-af57-d7deb76407db",
+      "name": "CRM: Update Status to \"Qualified\"",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ajay60jgP1cNazMj",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "base": {
+          "__rl": true,
+          "value": "appav5ThDtKtlEvD8",
+          "mode": "list",
+          "cachedResultName": "B2B Satış Lead Takip CRM",
+          "cachedResultUrl": "https://airtable.com/appav5ThDtKtlEvD8"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl9BVjdeKJFThcYY",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appav5ThDtKtlEvD8/tbl9BVjdeKJFThcYY"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "Durum": "Red",
+            "AI Skoru": 0
+          },
+          "matchingColumns": [
+            "id"
+          ],
+          "schema": [
+            {
+              "id": "id",
+              "displayName": "id",
+              "required": false,
+              "defaultMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": false
+            },
+            {
+              "id": "Müşteri Adı",
+              "displayName": "Müşteri Adı",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email",
+              "displayName": "Email",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Müşteri Mesajı",
+              "displayName": "Müşteri Mesajı",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Skoru",
+              "displayName": "AI Skoru",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "number",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Açıklaması",
+              "displayName": "AI Açıklaması",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Durum",
+              "displayName": "Durum",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "options",
+              "options": [
+                {
+                  "name": "Yeni",
+                  "value": "Yeni"
+                },
+                {
+                  "name": "Onaylı",
+                  "value": "Onaylı"
+                },
+                {
+                  "name": "Red",
+                  "value": "Red"
+                }
+              ],
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "Email Domain",
+              "displayName": "Email Domain",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Müşteri Mesajı Uzunluğu",
+              "displayName": "Müşteri Mesajı Uzunluğu",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "Onaylı mı?",
+              "displayName": "Onaylı mı?",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": true,
+              "removed": true
+            },
+            {
+              "id": "AI Lead Kategorisi",
+              "displayName": "AI Lead Kategorisi",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            },
+            {
+              "id": "AI Sonraki Aksiyon Önerisi",
+              "displayName": "AI Sonraki Aksiyon Önerisi",
+              "required": false,
+              "defaultMatch": false,
+              "canBeUsedToMatch": true,
+              "display": true,
+              "type": "string",
+              "readOnly": false,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        928,
+        384
+      ],
+      "id": "c550b419-0a83-4641-a1d2-77a04c7606e6",
+      "name": "CRM: Update Status to \"Rejected\"",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ajay60jgP1cNazMj",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "emrahdemirkoc@gmail.com",
+        "subject": "=🔥 YENİ LEAD ONAYLANDI:  {{ $json.fields['Müşteri Adı'] }} {{ $json.fields['AI Skoru'] }}",
+        "message": "=Merhaba Şampiyon, yeni bir potansiyel müşteri yakaladım! 🚀  👤 İsim:{{ $json.fields['Müşteri Adı'] }}   {{ $json.fields['AI Açıklaması'] }}  Müşteri Mesajı: \"{{ $json.fields['Müşteri Mesajı'] }}\"  Hemen arasan iyi olur! - Senin AI Asistanın",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1184,
+        288
+      ],
+      "id": "05fdec5a-bfc2-44ad-bca7-cabd20c84ea8",
+      "name": "Gmail: Notify Sales Team",
+      "webhookId": "291ffbb0-0103-46f7-b4e7-86b8c1ebeff5",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "8a5euHXrBEO76MFi",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "75ecc6e3-1e7d-4e39-92a6-d52c90a9642a",
+              "leftValue": "={{ $json.output[0].content[0].text.status }}",
+              "rightValue": "=complete",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        592,
+        -128
+      ],
+      "id": "9ef9b8c4-8719-4e1e-a21d-0ff6d63f8e20",
+      "name": "Check: Is Info Complete?"
+    },
+    {
+      "parameters": {
+        "sendTo": "emrahdemirkoc@gmail.com",
+        "subject": "Projeniz Hakkında Kısa Bir Soru ❓",
+        "emailType": "text",
+        "message": "={{ $json.output[0].content[0].text.clarification_email }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        752,
+        32
+      ],
+      "id": "d37be3d7-8a55-4080-be33-f129deb5e2b6",
+      "name": "Gmail: Ask Missing Info",
+      "webhookId": "f304b3e6-2df4-4bf7-af85-ce54db25ab17",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "8a5euHXrBEO76MFi",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "filters": {
+          "q": "subject:\"Projeniz Hakkında Kısa Bir Soru\""
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.3,
+      "position": [
+        208,
+        640
+      ],
+      "id": "c60312ec-783f-4d29-9ab4-ceb26184e52e",
+      "name": "Trigger: Catch Customer Reply",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "8a5euHXrBEO76MFi",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "search",
+        "base": {
+          "__rl": true,
+          "value": "appav5ThDtKtlEvD8",
+          "mode": "list",
+          "cachedResultName": "B2B Satış Lead Takip CRM",
+          "cachedResultUrl": "https://airtable.com/appav5ThDtKtlEvD8"
+        },
+        "table": {
+          "__rl": true,
+          "value": "tbl9BVjdeKJFThcYY",
+          "mode": "list",
+          "cachedResultName": "Leads",
+          "cachedResultUrl": "https://airtable.com/appav5ThDtKtlEvD8/tbl9BVjdeKJFThcYY"
+        },
+        "filterByFormula": "={Email}='emrahdemirkoc@gmail.com'",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.airtable",
+      "typeVersion": 2.1,
+      "position": [
+        416,
+        640
+      ],
+      "id": "b11e2c6e-7f39-40a5-a7f5-71087a8fa853",
+      "name": "Context: Identify Lead (Airtable)",
+      "credentials": {
+        "airtableTokenApi": {
+          "id": "Ajay60jgP1cNazMj",
+          "name": "Airtable Personal Access Token account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "modelId": {
+          "__rl": true,
+          "value": "gpt-4o-mini",
+          "mode": "list",
+          "cachedResultName": "GPT-4O-MINI"
+        },
+        "responses": {
+          "values": [
+            {
+              "content": "=GÖREV: Bir satış asistanısın. Müşteri daha önce eksik bilgi verdiği için işaretlenmişti. Şimdi attığı e-postayı analiz et ve eksiklerin tamamlanıp tamamlanmadığına karar ver.\n\nMÜŞTERİ CEVABI: \"{{ $('Trigger: Catch Customer Reply').item.json.snippet }}\"\n\nKARAR KRİTERLERİ:\n- Müşteri net bir bütçe (para) veya zamanlama (tarih) verdiyse -> \"completed\"\n- Hala soru soruyor veya net cevap vermiyorsa -> \"incomplete\"\n\nÇIKTI FORMATI (JSON):\n{\n  \"status\": \"completed\" veya \"incomplete\",\n  \"reasoning\": \"Müşteri bütçeyi 15.000 USD olarak netleştirdi.\",\n  \"extracted_budget\": \"15000\" (Varsa),\n  \"extracted_timing\": \"Haftaya\" (Varsa)\n}"
+            }
+          ]
+        },
+        "builtInTools": {},
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.openAi",
+      "typeVersion": 2.1,
+      "position": [
+        624,
+        640
+      ],
+      "id": "25b9c574-df23-4f8d-bc19-3440050fa51f",
+      "name": "AI Brain: Re-Evaluate & Validate",
+      "credentials": {
+        "openAiApi": {
+          "id": "8G9HHRMyQLpATcg9",
+          "name": "OpenAi account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "894b5d01-af5f-4360-90dc-0c5772795337",
+              "leftValue": "={{ $json.output[0].status }}",
+              "rightValue": "completed",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        976,
+        640
+      ],
+      "id": "ccdb7a31-b7da-44a6-8765-d17f55938dbd",
+      "name": "Router: Info Completed?"
+    },
+    {
+      "parameters": {
+        "select": "channel",
+        "channelId": {
+          "__rl": true,
+          "value": "#sales",
+          "mode": "name"
+        },
+        "text": "=",
+        "otherOptions": {}
+      },
+      "type": "n8n-nodes-base.slack",
+      "typeVersion": 2.4,
+      "position": [
+        1184,
+        544
+      ],
+      "id": "4030e886-1550-4423-8620-5c7ba3123bc1",
+      "name": "Slack: Final Approval Request",
+      "webhookId": "8acc1d97-8929-479a-95be-3902d657bc61",
+      "credentials": {
+        "slackApi": {
+          "id": "bd1KXGx2tyVXrMMl",
+          "name": "Slack account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "content": "\"INBOUND FLOW: Initial Qualification\""
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        128,
+        32
+      ],
+      "id": "71eff035-929d-4ab0-aedf-b11b4e7f72ce",
+      "name": "Sticky Note"
+    },
+    {
+      "parameters": {
+        "content": "\"OUTBOUND LOOP: Reply Handling & Enrichment\""
+      },
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        480,
+        448
+      ],
+      "id": "59594ad9-b1f7-4ea9-9937-ef2cfc054ac3",
+      "name": "Sticky Note1"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Trigger: New Lead (Mock)": {
+      "main": [
+        [
+          {
+            "node": "AI Brain: Analyze & Score",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Brain: Analyze & Score": {
+      "main": [
+        [
+          {
+            "node": "Check: Is Info Complete?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Filter: High Value Leads": {
+      "main": [
+        [
+          {
+            "node": "Airtable: Create \"Pending\" Record",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Airtable: Archive Junk Leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable: Create \"Pending\" Record": {
+      "main": [
+        [
+          {
+            "node": "Slack: Ask for Manager Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Slack: Ask for Manager Approval": {
+      "main": [
+        []
+      ]
+    },
+    "Airtable: Archive Junk Leads": {
+      "main": [
+        [
+          {
+            "node": "Slack: Ask for Manager Approval",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Listener: Slack Button Click": {
+      "main": [
+        [
+          {
+            "node": "Parser: Extract Decision & ID",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parser: Extract Decision & ID": {
+      "main": [
+        [
+          {
+            "node": "Router: Approved?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router: Approved?": {
+      "main": [
+        [
+          {
+            "node": "CRM: Update Status to \"Qualified\"",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "CRM: Update Status to \"Rejected\"",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: Update Status to \"Qualified\"": {
+      "main": [
+        [
+          {
+            "node": "Gmail: Notify Sales Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "CRM: Update Status to \"Rejected\"": {
+      "main": [
+        [
+          {
+            "node": "Gmail: Notify Sales Team",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Check: Is Info Complete?": {
+      "main": [
+        [
+          {
+            "node": "Filter: High Value Leads",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Gmail: Ask Missing Info",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger: Catch Customer Reply": {
+      "main": [
+        [
+          {
+            "node": "Context: Identify Lead (Airtable)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Context: Identify Lead (Airtable)": {
+      "main": [
+        [
+          {
+            "node": "AI Brain: Re-Evaluate & Validate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Brain: Re-Evaluate & Validate": {
+      "main": [
+        [
+          {
+            "node": "Router: Info Completed?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Router: Info Completed?": {
+      "main": [
+        [
+          {
+            "node": "Slack: Final Approval Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "availableInMCP": false
+  },
+  "versionId": "63e850e9-108d-41bf-985e-6cc8307eda94",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "a2e52c777bc2ceaba0402a3b3768c056f8e30c3434809d4df0853e039bf670b5"
+  },
+  "id": "If8yY9jzbVsiJ_lJkfKM5",
+  "tags": []
+}

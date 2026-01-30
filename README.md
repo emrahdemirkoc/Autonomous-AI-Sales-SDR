@@ -53,10 +53,14 @@ This system acts as a fully autonomous **SDR (Sales Development Representative)*
 4.  Configure **Slack Webhook** for notifications.
 5.  Watch your AI SDR qualify leads while you sleep!
 
+---
 
-📞 İletişim & Destek
-Bu proje veya benzer n8n otomasyonları hakkında danışmanlık almak isterseniz: 
-👉 Web Sitemi Ziyaret Edin: emrahdemirkoc.com  📧 E-posta: emrahdemirkoc@gmail.com
+## 📞 Contact & Support
+
+If you are interested in this project or would like to discuss custom **n8n automation solutions** for your business, feel free to reach out.
+
+👉 **Visit my Website:** [emrahdemirkoc.com](https://emrahdemirkoc.com)  
+📧 **Email:** [emrahdemirkoc@gmail.com](mailto:emrahdemirkoc@gmail.com)
 ---
 
 ### 👤 Author

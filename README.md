@@ -52,6 +52,8 @@ This system acts as a fully autonomous **SDR (Sales Development Representative)*
 3.  Connect **Gmail API** (Scope: Read/Write/Send).
 4.  Configure **Slack Webhook** for notifications.
 5.  Watch your AI SDR qualify leads while you sleep!
+
+
 📞 İletişim & Destek
 Bu proje veya benzer n8n otomasyonları hakkında danışmanlık almak isterseniz: 👉 Web Sitemi Ziyaret Edin: emrahdemirkoc.com 📧 E-posta: emrahdemirkoc@gmail.com
 ---

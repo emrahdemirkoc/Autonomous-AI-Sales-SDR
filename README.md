@@ -55,7 +55,8 @@ This system acts as a fully autonomous **SDR (Sales Development Representative)*
 
 
 📞 İletişim & Destek
-Bu proje veya benzer n8n otomasyonları hakkında danışmanlık almak isterseniz: 👉 Web Sitemi Ziyaret Edin: emrahdemirkoc.com 📧 E-posta: emrahdemirkoc@gmail.com
+Bu proje veya benzer n8n otomasyonları hakkında danışmanlık almak isterseniz: 
+👉 Web Sitemi Ziyaret Edin: emrahdemirkoc.com  📧 E-posta: emrahdemirkoc@gmail.com
 ---
 
 ### 👤 Author
